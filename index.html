@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corriente galvánica · Fundamento y efectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf7f2; --paper:#ffffff; --ink:#23201c; --muted:#6b645a; --line:#e7e0d5;
+  --plus:#c8323c; --plus-soft:#fbe7e8; --minus:#2b3a67; --minus-soft:#e5e9f5;
+  --accent:#b8860b; --ok:#2e7d4f; --ok-soft:#e3f3e9; --ko:#b3261e; --ko-soft:#fbe4e2;
+  --skin:#f3d2bd; --skin-deep:#e6b79b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:#2a2622;color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;display:flex;flex-direction:column}
+/* stage */
+.viewport{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:1.2vh 1vw}
+.stage{width:min(98vw, calc((100vh - 74px) * 16 / 9));aspect-ratio:16/9;container-type:size;position:relative;background:var(--bg);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.slide{position:absolute;inset:0;padding:3.6cqw 5cqw 3.4cqw;display:none;flex-direction:column;gap:1.4cqw;overflow:auto;font-size:1.45cqw;line-height:1.5}
+.slide.active{display:flex;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.slide h1,.slide h2,.slide h3{font-family:Fraunces,Georgia,serif;line-height:1.15;margin:0}
+.slide h1{font-size:4.6cqw}
+.slide h2{font-size:2.9cqw}
+.slide h3{font-size:1.75cqw}
+.slide p{margin:0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:2cqw}
+.eyebrow{font-size:1.05cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:.5cqw}
+.ra{font-size:.95cqw;font-weight:700;color:var(--muted);border:1px dashed #cfc6b8;border-radius:8px;padding:.25cqw .7cqw;white-space:nowrap}
+.grow{flex:1;min-height:0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:1.2cqw;padding:1.6cqw}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.6cqw}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4cqw}
+.row{display:flex;flex-wrap:wrap;gap:.9cqw;align-items:center}
+.pill{display:inline-block;padding:.1cqw .8cqw;border-radius:999px;font-weight:700;font-size:1.1cqw}
+.p-plus{background:var(--plus-soft);color:var(--plus)} .p-minus{background:var(--minus-soft);color:var(--minus)}
+.key{background:#fff8e6;border-left:.4cqw solid var(--accent);border-radius:1cqw;padding:1.3cqw 1.8cqw}
+.key strong.t{display:block;font-size:1cqw;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.4cqw}
+.key ul,.slide ul{margin:0;padding-left:1.6cqw}
+.key li{margin:.3cqw 0}
+.dark .key li{margin:.7cqw 0}
+button{font:inherit;cursor:pointer}
+.btn{border:2px solid var(--ink);background:var(--ink);color:#fff;border-radius:999px;padding:.6cqw 1.4cqw;font-weight:700;font-size:1.25cqw}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:focus-visible,.term:focus-visible,.opt:focus-visible,.navb:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.term{border:none;background:none;padding:0;color:inherit;font-weight:700;border-bottom:2px dotted var(--accent);cursor:help;font-size:inherit}
+#pop{position:fixed;z-index:50;max-width:320px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:12px;font-size:15px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none}
+#pop b{color:#ffd77a}
+.chip{background:var(--paper);border:1px solid var(--line);border-radius:1.2cqw;padding:1.4cqw;text-align:center}
+.chip .big{font-family:Fraunces,serif;font-size:3.6cqw;font-weight:700;line-height:1.1}
+.chip small{display:block;color:var(--muted);font-size:1.15cqw}
+.eq{font-family:ui-monospace,Menlo,monospace;background:rgba(255,255,255,.75);border-radius:.6cqw;padding:.3cqw .8cqw;display:inline-block;margin:.2cqw 0;font-size:1.3cqw}
+/* cover */
+.cover{background:radial-gradient(circle at 85% 15%,var(--plus-soft) 0,transparent 42%),radial-gradient(circle at 8% 95%,var(--minus-soft) 0,transparent 48%),var(--bg);justify-content:center}
+.dark{background:#23201c;color:#f3ede4}
+.dark .key{background:#36302a;color:#f3ede4}
+/* sim */
+.sim-svg{width:100%;height:auto;max-height:52cqh;display:block;border-radius:1cqw;background:#eef5f8}
+.react{border-radius:1.2cqw;padding:1.6cqw;border:3px solid transparent;transition:.3s}
+.react.plus{background:var(--plus-soft)} .react.minus{background:var(--minus-soft)}
+.react.on.plus{border-color:var(--plus)} .react.on.minus{border-color:var(--minus)}
+.ph{height:1.1cqw;border-radius:.6cqw;background:linear-gradient(90deg,#e8434a,#f5a623,#f2e14c,#7ac943,#3fa7d6,#3b5bdb,#6a3fbf);position:relative;margin:.8cqw 0 .2cqw}
+.ph i{position:absolute;top:-.45cqw;width:.5cqw;height:2cqw;background:var(--ink);border-radius:3px;transition:left .6s}
+.ph-l{display:flex;justify-content:space-between;font-size:1cqw;color:var(--muted)}
+/* classify */
+.cls{display:grid;grid-template-columns:repeat(4,1fr);gap:.9cqw}
+.cl{background:var(--paper);border:1.5px solid var(--line);border-radius:1cqw;padding:.9cqw 1.1cqw;font-size:1.4cqw;line-height:1.35;transition:.25s;text-align:left;color:var(--ink)}
+.cl p{margin:0 0 .6cqw;font-weight:500}
+.cl .row{gap:.5cqw}
+.cl .row button{flex:1;border-radius:.7cqw;padding:.5cqw;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:1.3cqw}
+.cl .row button.a{color:var(--plus)} .cl .row button.c{color:var(--minus)}
+.cl.right{background:var(--ok-soft);border-color:var(--ok)}
+.cl.wrong{background:var(--ko-soft);border-color:var(--ko)}
+.cl small{display:block;font-size:1.25cqw}
+table.cmp{width:100%;border-collapse:collapse;font-size:1.85cqw}
+table.cmp th,table.cmp td{padding:.85cqw 1.2cqw;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{font-family:Fraunces,serif;font-size:2.3cqw}
+table.cmp th:nth-child(2){color:var(--plus)} table.cmp th:nth-child(3){color:var(--minus)}
+/* density */
+input[type=range]{width:100%;accent-color:var(--ink)}
+.ctrl label{display:flex;justify-content:space-between;font-weight:700;font-size:1.55cqw}
+.ctrl{margin-bottom:1cqw}
+.dens-vis{display:flex;align-items:center;justify-content:space-around;height:21cqw;background:linear-gradient(var(--skin),var(--skin-deep));border-radius:1cqw}
+.elec{border-radius:.8cqw;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1cqw;transition:.3s}
+.num-big{font-family:Fraunces,serif;font-size:2.8cqw;font-weight:700}
+.warn{background:var(--ko-soft);color:var(--ko);border-radius:.8cqw;padding:.7cqw 1cqw;font-weight:700;display:none;font-size:1.2cqw}
+/* io */
+.io-svg{width:100%;height:auto;max-height:42cqh;display:block;border-radius:1cqw}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:none;background:transparent;padding:.55cqw 1.3cqw;font-weight:700;font-size:1.45cqw;color:var(--ink)}
+.seg button.sel{background:var(--ink);color:#fff}
+.fb{border-radius:.9cqw;padding:.9cqw 1.3cqw;font-weight:500}
+.fb.good{background:var(--ok-soft)} .fb.bad{background:var(--ko-soft)}
+/* body */
+.body-svg{height:68cqh;width:auto}
+.bigtxt{font-family:Fraunces,serif;font-size:3.4cqw;font-weight:700}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;margin:.7cqw 0;padding:1.1cqw 1.5cqw;border-radius:1cqw;border:2px solid var(--line);background:#fff;font-size:1.75cqw;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--ko-soft);border-color:var(--ko)}
+.qbar{height:.6cqw;background:var(--line);border-radius:.3cqw;overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--accent);width:0;transition:.4s}
+.zone{cursor:pointer;transition:.2s}
+.zone:hover ellipse,.zone:hover rect,.zone.sel ellipse,.zone.sel rect{opacity:.6}
+.zone:focus-visible{outline:3px solid var(--accent)}
+.pi{display:flex;align-items:center;gap:.8cqw;background:var(--paper);border:1.5px solid var(--line);border-radius:.9cqw;padding:.75cqw 1cqw;font-size:1.4cqw;line-height:1.3}
+.pi small{font-size:1.15cqw}
+.pi span{flex:1}
+.pi button{border-radius:.6cqw;padding:.45cqw .8cqw;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:1.2cqw;color:var(--ink)}
+.pi.right{background:var(--ok-soft);border-color:var(--ok)} .pi.wrong{background:var(--ko-soft);border-color:var(--ko)}
+table.cmp td.hid{cursor:pointer;position:relative;color:transparent}
+table.cmp td.hid *{visibility:hidden}
+table.cmp td.hid::after{content:"¿?  toca para ver";position:absolute;inset:.35cqw .4cqw;border-radius:.6cqw;background:#efe8dc;color:var(--muted);font-size:1.2cqw;font-weight:700;display:flex;align-items:center;padding-left:1cqw}
+table.cmp td.hid:hover::after{background:#e5dccd}
+table.cmp td.shown{animation:in .3s ease;background:#fff8e6}
+/* nav bar */
+.nav{height:56px;flex:none;display:flex;align-items:center;justify-content:center;gap:14px;color:#f3ede4;font-size:14px;padding:0 12px}
+.navb{border:1px solid #6b645a;background:#3a342e;color:#f3ede4;border-radius:999px;width:40px;height:40px;font-size:18px;display:flex;align-items:center;justify-content:center}
+.navb:disabled{opacity:.35;cursor:default}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:55vw}
+.dot{width:10px;height:10px;border-radius:50%;background:#6b645a;border:none;padding:0}
+.dot.on{background:#ffd77a;transform:scale(1.25)}
+#counter{min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.navb.wide{width:auto;padding:0 14px;font-size:14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+
+<!-- 1 Portada -->
+<section class="slide cover" data-title="Portada">
+  <div class="eyebrow">Aparatología estética · Tema 3 · Apartados 1-3</div>
+  <h1>La corriente galvánica:<br>qué pasa bajo los electrodos</h1>
+  <p style="font-size:1.7cqw;max-width:60cqw;color:#3b362f;margin-top:1cqw">Explora, prueba y comprueba. Toca las palabras <button class="term" data-t="ejemplo">subrayadas así</button> para ver su significado.</p>
+  <p style="color:var(--muted);font-size:1.2cqw;margin-top:2cqw">Avanza con las flechas ← → del teclado o con los botones de abajo.</p>
+</section>
+
+<!-- 2 Qué es -->
+<section class="slide" data-title="Qué es">
+  <div class="top"><div><div class="eyebrow">1 · Qué es</div><h2>Una corriente continua</h2></div><span class="ra">RA2 · a)</span></div>
+  <p>Fue la <b>primera corriente que se aplicó en estética</b>. Es una <button class="term" data-t="continua">corriente continua</button>: los electrones circulan sin parar, <b>siempre en el mismo sentido</b>. Pero la red nos llega en <b>corriente alterna</b>, así que el equipo lleva un transformador que la convierte.</p>
+  <div class="card grow" style="display:flex;flex-direction:column;justify-content:center">
+    <svg viewBox="0 0 600 270" style="width:100%;max-height:44cqh" aria-label="Gráfica de la corriente y electrones moviéndose por un cable">
+      <line x1="20" y1="90" x2="590" y2="90" stroke="#cfc6b8" stroke-width="1.5"/>
+      <line x1="20" y1="15" x2="20" y2="165" stroke="#cfc6b8" stroke-width="1.5"/>
+      <text x="26" y="24" font-size="12" fill="#6b645a">+</text><text x="26" y="164" font-size="12" fill="#6b645a">−</text>
+      <text x="548" y="108" font-size="12" fill="#6b645a">tiempo</text>
+      <path id="wave" d="" fill="none" stroke="#2b3a67" stroke-width="4" stroke-linecap="round"/>
+      <circle id="wave-dot" r="7" fill="#b8860b"/>
+      <text x="20" y="200" font-size="12" font-weight="700" fill="#6b645a">Electrones en el cable</text>
+      <rect x="20" y="212" width="570" height="40" rx="20" fill="#f1ebe1" stroke="#cfc6b8" stroke-width="1.5"/>
+      <g id="electrons"></g>
+      <text id="wire-arrow" x="305" y="268" text-anchor="middle" font-size="13" font-weight="700" fill="#b8860b"></text>
+    </svg>
+    <div class="row" style="justify-content:space-between;margin-top:1cqw">
+      <div><b id="wave-title"></b><br><span id="wave-txt" style="color:var(--muted)"></span></div>
+      <button class="btn" id="wave-btn"></button>
+    </div>
+  </div>
+</section>
+
+<!-- 3 Datos -->
+<section class="slide" data-title="Datos clave">
+  <div class="top"><div><div class="eyebrow">1 · Qué es</div><h2>Sus datos clave</h2></div><span class="ra">RA2 · a)</span></div>
+  <div class="grid3 grow" style="align-content:center">
+    <div class="chip"><small>Tipo</small><div class="big">Continua</div><small>intensidad y polaridad constantes</small></div>
+    <div class="chip"><small>Tensión</small><div class="big">60-80 V</div><small>baja tensión</small></div>
+    <div class="chip"><small><button class="term" data-t="intensidad">Intensidad</button> habitual</small><div class="big">1-10 mA</div><small>los equipos llegan a 200 mA</small></div>
+  </div>
+  <div class="key"><strong class="t">Recuerda</strong>Hoy se usa menos por la llegada de técnicas nuevas, pero sigue siendo útil y sus efectos son beneficiosos.</div>
+</section>
+
+<!-- 4 Simulador -->
+<section class="slide" data-title="Simulador de iones">
+  <div class="top"><div><div class="eyebrow">2 · Fundamento</div><h2>Simulador: ¿hacia dónde van los iones?</h2></div><span class="ra">RA2 · a), c)</span></div>
+  <p>Los líquidos de la piel se comportan como <b>agua con sal (NaCl)</b>, un <button class="term" data-t="electrolito">electrolito</button>: la sal se separa en <button class="term" data-t="ion">iones</button> Na⁺ y Cl⁻.</p>
+  <svg id="sim" class="sim-svg" viewBox="0 0 640 260" role="img" aria-label="Simulación de iones moviéndose entre ánodo y cátodo">
+    <rect id="elL" x="14" y="16" width="34" height="228" rx="8" fill="#c8323c"/>
+    <rect id="elR" x="592" y="16" width="34" height="228" rx="8" fill="#2b3a67"/>
+    <text id="lblL" x="31" y="140" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">+</text>
+    <text id="lblR" x="609" y="140" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">−</text>
+    <g id="particles"></g><g id="bubbles"></g>
+  </svg>
+  <div class="row">
+    <button class="btn" id="sim-on">⚡ Conectar corriente</button>
+    <button class="btn ghost" id="sim-inv">⇄ Inversor</button>
+    <button class="btn ghost" id="sim-reset">↺ Reiniciar</button>
+    <span style="font-size:1.15cqw;color:var(--muted)"><b style="color:#c8323c">●</b> Na⁺ (catión) &nbsp; <b style="color:#1f8a70">●</b> Cl⁻ (anión)</span>
+  </div>
+  <p id="sim-msg" style="font-weight:500"></p>
+</section>
+
+<!-- 5 Reacciones -->
+<section class="slide" data-title="Reacciones en cada polo">
+  <div class="top"><div><div class="eyebrow">2 · Fundamento</div><h2>Qué ocurre al llegar a cada electrodo</h2></div><span class="ra">RA2 · c)</span></div>
+  <div class="grid2 grow">
+    <div class="react plus" id="r-plus">
+      <h3>En el <button class="term" data-t="anodo">ánodo</button> (+)</h3>
+      <p style="margin:.6cqw 0">Llega el <b>Cl⁻</b>. Pierde su electrón y se convierte en cloro, que reacciona con el agua:</p>
+      <span class="eq">Cl⁻ − 1e⁻ → Cl</span><br><span class="eq">4 Cl + 2 H₂O → 4 HCl + O₂</span>
+      <p style="margin-top:.6cqw">Se forma <b>ácido clorhídrico (HCl)</b> y se libera <b>oxígeno</b>: <b>reacción ácida</b>.</p>
+      <div class="ph"><i id="ph-plus" style="left:47%"></i></div><div class="ph-l"><span>ácido</span><span>neutro</span><span>alcalino</span></div>
+    </div>
+    <div class="react minus" id="r-minus">
+      <h3>En el <button class="term" data-t="catodo">cátodo</button> (−)</h3>
+      <p style="margin:.6cqw 0">Llega el <b>Na⁺</b>. Gana un electrón y se convierte en sodio, que reacciona con el agua:</p>
+      <span class="eq">Na⁺ + 1e⁻ → Na</span><br><span class="eq">2 Na + 2 H₂O → 2 NaOH + H₂</span>
+      <p style="margin-top:.6cqw">Se forma <b>hidróxido sódico (NaOH, sosa cáustica)</b> y se libera <b>hidrógeno</b>: <b>reacción alcalina</b>.</p>
+      <div class="ph"><i id="ph-minus" style="left:47%"></i></div><div class="ph-l"><span>ácido</span><span>neutro</span><span>alcalino</span></div>
+    </div>
+  </div>
+  <p style="font-size:1.1cqw;color:var(--muted)">Los indicadores de pH reflejan lo que haya pasado en el simulador de la diapositiva anterior.</p>
+</section>
+
+<!-- 6 Ideas clave -->
+<section class="slide dark" data-title="Ideas clave: iones">
+  <div class="eyebrow">Ideas clave</div>
+  <h2 style="font-size:3.4cqw">Los signos contrarios se atraen</h2>
+  <div class="grid2 grow" style="align-content:center">
+    <div class="key" style="border-color:var(--plus)"><strong class="t" style="color:#ff9aa0">Ánodo (+)</strong><span style="font-size:1.8cqw">Atrae <button class="term" data-t="anion">aniones</button> (Cl⁻)<br>→ <b>reacción ácida</b></span></div>
+    <div class="key" style="border-color:#8fa3e0"><strong class="t" style="color:#a9b8f0">Cátodo (−)</strong><span style="font-size:1.8cqw">Atrae <button class="term" data-t="cation">cationes</button> (Na⁺)<br>→ <b>reacción alcalina</b></span></div>
+  </div>
+</section>
+
+<!-- 7 Polar vs interpolar -->
+<section class="slide" data-title="Dos tipos de efectos">
+  <div class="top"><div><div class="eyebrow">3 · Efectos fisiológicos</div><h2>Dos tipos de efectos</h2></div><span class="ra">RA2 · c)</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1.1fr;gap:2cqw" class="grow">
+    <div style="display:flex;flex-direction:column;gap:1cqw">
+      <p style="font-size:1.6cqw">Toca cada <b>zona</b> del esquema para ver qué ocurre allí.</p>
+      <svg viewBox="0 0 640 220" style="width:100%" aria-label="Esquema: efectos polares bajo cada electrodo e interpolares entre ellos">
+        <rect x="0" y="90" width="640" height="130" rx="14" fill="#f3d2bd"/>
+        <rect x="70" y="40" width="120" height="44" rx="10" fill="#c8323c"/><text x="130" y="69" text-anchor="middle" fill="#fff" font-weight="700" font-size="20">+</text>
+        <rect x="450" y="40" width="120" height="44" rx="10" fill="#2b3a67"/><text x="510" y="69" text-anchor="middle" fill="#fff" font-weight="700" font-size="20">−</text>
+        <g class="zone" data-z="a" tabindex="0" role="button" aria-label="Zona bajo el ánodo"><ellipse cx="130" cy="114" rx="76" ry="24" fill="#c8323c" opacity=".28"/><text x="130" y="119" text-anchor="middle" font-size="14" font-weight="700" fill="#7a1f25">¿?</text></g>
+        <g class="zone" data-z="c" tabindex="0" role="button" aria-label="Zona bajo el cátodo"><ellipse cx="510" cy="114" rx="76" ry="24" fill="#2b3a67" opacity=".28"/><text x="510" y="119" text-anchor="middle" font-size="14" font-weight="700" fill="#1b2546">¿?</text></g>
+        <g class="zone" data-z="i" tabindex="0" role="button" aria-label="Zona entre los electrodos"><path d="M150 140 Q320 225 490 140" fill="none" stroke="#b8860b" stroke-width="4" stroke-dasharray="9 7"/><rect x="250" y="150" width="140" height="56" rx="12" fill="#b8860b" opacity=".2"/><text x="320" y="184" text-anchor="middle" font-size="14" font-weight="700" fill="#7a5a10">¿?</text></g>
+      </svg>
+      <div class="card" id="zone-info" style="min-height:11cqw;font-size:1.65cqw"><p style="color:var(--muted)">Elige una zona: bajo el ánodo, bajo el cátodo o entre los dos.</p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7cqw">
+      <div class="row" style="justify-content:space-between"><h3 style="font-size:2cqw">¿Polar o interpolar?</h3><div class="row"><b id="pi-score" style="font-size:1.5cqw"></b><button class="btn ghost" id="pi-reset" style="font-size:1.1cqw;padding:.35cqw 1cqw">↺ Reiniciar</button></div></div>
+      <div id="pi" style="display:flex;flex-direction:column;gap:.6cqw"></div>
+    </div>
+  </div>
+  <p style="font-size:1.45cqw;color:var(--muted)">En realidad siempre se dan los dos tipos de <button class="term" data-t="polar">efectos</button>; según cómo se aplique la corriente predominan unos u otros.</p>
+</section>
+
+<!-- 8 Reto -->
+<section class="slide" data-title="Reto: ¿ánodo o cátodo?">
+  <div class="top"><div><div class="eyebrow">3.1 · Efectos polares</div><h2>Reto: ¿ánodo o cátodo?</h2></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.4cqw"><span class="ra">RA2 · c)</span><div class="row"><b id="cls-score" style="font-size:1.4cqw"></b><button class="btn ghost" id="cls-reset" style="font-size:1.1cqw;padding:.35cqw 1cqw">↺ Reiniciar</button></div></div></div>
+  <div class="cls" id="cls" style="gap:.8cqw"></div>
+</section>
+
+<!-- 9 Tabla -->
+<section class="slide" data-title="Resumen efectos polares">
+  <div class="top"><div><div class="eyebrow">3.1 · Efectos polares</div><h2>Resumen</h2></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:.4cqw"><span class="ra">RA2 · c)</span><div class="row"><b id="tb-count" style="font-size:1.35cqw"></b><button class="btn" id="tb-mode" style="font-size:1.15cqw;padding:.4cqw 1.1cqw">🙈 Modo repaso</button><button class="btn ghost" id="tb-all" style="font-size:1.15cqw;padding:.4cqw 1.1cqw;display:none">👁 Mostrar todo</button></div></div></div>
+  <p id="tb-hint" style="font-size:1.35cqw;color:var(--muted);display:none">Di la respuesta en voz alta y después toca la casilla para comprobarla.</p>
+  <table class="cmp" id="tb">
+    <tr><th></th><th>Ánodo (+)</th><th>Cátodo (−)</th></tr>
+    <tr><td><b>Atrae</b></td><td>Aniones (iones −)</td><td>Cationes (iones +)</td></tr>
+    <tr><td><b>Rechaza</b></td><td>Cationes (iones +)</td><td>Aniones (iones −)</td></tr>
+    <tr><td><b>Reacción</b></td><td>Ácida (HCl, libera oxígeno)</td><td>Alcalina (NaOH, libera hidrógeno)</td></tr>
+    <tr><td><b>Si es excesiva</b></td><td>Quemadura ácida: seca, dura, más superficial</td><td>Quemadura alcalina: húmeda, blanda, más profunda</td></tr>
+    <tr><td><b>Vasos sanguíneos</b></td><td>Vasoconstricción (se estrechan)</td><td>Vasodilatación (se ensanchan)</td></tr>
+    <tr><td><b>Nervios</b></td><td>Sedación · <button class="term" data-t="hiper">hiperpolarización</button></td><td>Estimulación · despolarización</td></tr>
+  </table>
+</section>
+
+<!-- 10 Densidad concepto -->
+<section class="slide" data-title="Densidad de corriente">
+  <div class="top"><div><div class="eyebrow">3.1 · Efectos polares</div><h2>La densidad de corriente</h2></div><span class="ra">RA2 · c), g) · RA3 · g)</span></div>
+  <p style="font-size:1.85cqw">La fuerza de las reacciones ácida y alcalina depende de la <button class="term" data-t="densidad">densidad de corriente</button>: la intensidad que pasa por cada cm² de electrodo.</p>
+  <p style="text-align:center"><span class="eq" style="font-size:2.2cqw;padding:1cqw 2cqw;background:#fff;border:1px solid var(--line)">densidad (mA/cm²) = intensidad (mA) ÷ superficie (cm²)</span></p>
+  <div style="display:grid;grid-template-columns:1fr 1.35fr;gap:2cqw" class="grow">
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:1.2cqw;font-size:1.7cqw">
+      <svg viewBox="0 0 300 120" style="width:100%" aria-label="Electrodo pequeño frente a grande con la misma intensidad">
+        <rect x="0" y="70" width="300" height="50" rx="8" fill="#f3d2bd"/>
+        <rect x="50" y="46" width="30" height="24" rx="4" fill="#2b3a67"/>
+        <g fill="#b8860b"><circle cx="54.0" cy="78" r="2.6"/><circle cx="61.5" cy="78" r="2.6"/><circle cx="69.0" cy="78" r="2.6"/><circle cx="76.5" cy="78" r="2.6"/><circle cx="54.0" cy="85" r="2.6"/><circle cx="61.5" cy="85" r="2.6"/><circle cx="69.0" cy="85" r="2.6"/><circle cx="76.5" cy="85" r="2.6"/><circle cx="54.0" cy="92" r="2.6"/><circle cx="61.5" cy="92" r="2.6"/><circle cx="69.0" cy="92" r="2.6"/><circle cx="76.5" cy="92" r="2.6"/><circle cx="54.0" cy="99" r="2.6"/><circle cx="61.5" cy="99" r="2.6"/><circle cx="69.0" cy="99" r="2.6"/><circle cx="76.5" cy="99" r="2.6"/></g>
+        <rect x="150" y="46" width="130" height="24" rx="4" fill="#c8323c"/>
+        <g fill="#b8860b"><circle cx="158.0" cy="80" r="2.6"/><circle cx="174.0" cy="80" r="2.6"/><circle cx="190.0" cy="80" r="2.6"/><circle cx="206.0" cy="80" r="2.6"/><circle cx="222.0" cy="80" r="2.6"/><circle cx="238.0" cy="80" r="2.6"/><circle cx="254.0" cy="80" r="2.6"/><circle cx="270.0" cy="80" r="2.6"/><circle cx="158.0" cy="92" r="2.6"/><circle cx="174.0" cy="92" r="2.6"/><circle cx="190.0" cy="92" r="2.6"/><circle cx="206.0" cy="92" r="2.6"/><circle cx="222.0" cy="92" r="2.6"/><circle cx="238.0" cy="92" r="2.6"/><circle cx="254.0" cy="92" r="2.6"/><circle cx="270.0" cy="92" r="2.6"/></g>
+        <text x="65" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#23201c">pequeño</text>
+        <text x="215" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#23201c">grande</text>
+      </svg>
+      <p>Con la misma intensidad, <b>un electrodo pequeño concentra más la corriente</b>: el efecto es más intenso y hay <b>más riesgo de quemadura química</b>.</p>
+    </div>
+    <div class="key" style="font-size:1.7cqw;display:flex;flex-direction:column;justify-content:center"><strong class="t" style="font-size:1.3cqw">Para reducir el riesgo</strong>
+      <ul>
+        <li>Bajar la intensidad o adaptarla al tamaño del electrodo activo.</li>
+        <li>Usar siempre un electrodo pasivo <b>más grande</b> que el activo.</li>
+        <li>Acortar el tiempo de tratamiento.</li>
+        <li>Cambiar la polaridad cada cierto tiempo (si la técnica lo permite).</li>
+        <li>No superar nunca el umbral de dolor ni tratar a personas con alteraciones de la sensibilidad.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 11 Laboratorio -->
+<section class="slide" data-title="Laboratorio de densidad">
+  <div class="top"><div><div class="eyebrow">3.1 · Efectos polares</div><h2>Laboratorio: ¿qué pasa si encojo el electrodo?</h2></div><span class="ra">RA2 · c), g) · RA3 · g)</span></div>
+  <div class="grid2 grow">
+    <div class="card">
+      <div class="ctrl"><label>Intensidad <span id="v-i"></span></label><input type="range" id="s-i" min="0.5" max="10" step="0.5" value="3"></div>
+      <div class="ctrl"><label><span><span class="pill p-minus">activo</span> superficie</span><span id="v-a"></span></label><input type="range" id="s-a" min="1" max="100" step="1" value="10"></div>
+      <div class="ctrl"><label><span><span class="pill p-plus">pasivo</span> superficie</span><span id="v-p"></span></label><input type="range" id="s-p" min="1" max="300" step="1" value="150"></div>
+      <div class="warn" id="d-warn">⚠ El pasivo es más pequeño que el activo. Debe ser <u>siempre más grande</u>.</div>
+      <div class="key" style="margin-top:1.2cqw;font-size:1.45cqw"><strong class="t" style="font-size:1.15cqw">Prueba y explica</strong>
+        <ol style="margin:0;padding-left:1.8cqw">
+          <li>Duplica la intensidad sin tocar los electrodos. ¿Qué le pasa a la densidad?</li>
+          <li>Deja la intensidad fija y reduce el activo a la mitad. ¿Y ahora?</li>
+          <li>Pon el pasivo más pequeño que el activo. ¿Qué riesgo aparece?</li>
+        </ol>
+      </div>
+      <p style="font-size:1.2cqw;color:var(--muted);margin-top:.8cqw">Sirve para comparar. En cabina manda la ficha técnica y la sensación del cliente: <b>hormigueo agradable, nunca dolor</b>.</p>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:.8cqw">
+      <div class="dens-vis"><div class="elec" id="d-act" style="background:#2b3a67">activo</div><div class="elec" id="d-pas" style="background:#c8323c">pasivo</div></div>
+      <div class="grid2" style="gap:.6cqw">
+        <div><div style="font-size:1.3cqw;color:var(--muted)">Bajo el activo</div><div class="num-big" id="d-ra"></div></div>
+        <div><div style="font-size:1.3cqw;color:var(--muted)">Bajo el pasivo</div><div class="num-big" id="d-rp"></div></div>
+      </div>
+      <p id="d-txt" style="font-weight:500;font-size:1.6cqw"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 Iontoforesis -->
+<section class="slide" data-title="Repulsión e iontoforesis">
+  <div class="top"><div><div class="eyebrow">3.1 · Efectos polares</div><h2>Repulsión de iones: la base de la iontoforesis</h2></div><span class="ra">RA2 · c), f)</span></div>
+  <p style="font-size:1.75cqw">Cada electrodo <b>rechaza</b> los iones de su mismo signo. Su «vía de escape» es <b>entrar en la piel</b>: es la <button class="term" data-t="iontoforesis">iontoforesis</button>. ¿Sabes colocar el cosmético?</p>
+  <div style="display:grid;grid-template-columns:1.05fr 1fr;gap:2cqw" class="grow">
+    <svg class="io-svg" viewBox="0 0 640 310" style="max-height:none;width:100%;height:auto;align-self:center" role="img" aria-label="Electrodo sobre la piel con iones del cosmético">
+      <rect x="0" y="0" width="640" height="310" fill="#eef5f8"/>
+      <rect x="0" y="120" width="640" height="190" fill="#f3d2bd"/><rect x="0" y="120" width="640" height="16" fill="#e6b79b"/>
+      <text x="12" y="300" font-size="15" fill="#7a5a48">piel</text>
+      <rect id="io-el" x="170" y="22" width="300" height="40" rx="10" fill="#c8323c"/>
+      <text id="io-ellbl" x="320" y="49" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">Ánodo (+)</text>
+      <rect x="170" y="62" width="300" height="56" fill="#fff6d6" opacity=".9"/><text x="476" y="95" font-size="12" fill="#8a6d1c">cosmético</text>
+      <g id="io-parts"></g>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:.9cqw">
+      <div><div style="font-size:1.35cqw;font-weight:700;margin-bottom:.4cqw">1. Carga del activo del cosmético</div><div class="seg" id="seg-ion"><button data-v="-" class="sel">Iones −</button><button data-v="+">Iones +</button></div></div>
+      <div><div style="font-size:1.35cqw;font-weight:700;margin-bottom:.4cqw">2. Polaridad del electrodo activo</div><div class="seg" id="seg-el"><button data-v="+" class="sel">Ánodo (+)</button><button data-v="-">Cátodo (−)</button></div></div>
+      <div><button class="btn" id="io-go">⚡ 3. Aplicar</button></div>
+      <div class="fb" id="io-fb" style="display:none;font-size:1.4cqw"></div>
+      <div class="key" style="font-size:1.4cqw;margin-top:auto"><strong class="t" style="font-size:1.15cqw">Recuerda</strong>La sustancia se coloca bajo el electrodo de <b>su misma polaridad</b>. El fabricante la indica en el envase.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 Interpolares -->
+<section class="slide" data-title="Efectos interpolares">
+  <div class="top"><div><div class="eyebrow">3.2 · Efectos interpolares</div><h2>Entre los dos electrodos</h2></div><span class="ra">RA2 · c), d)</span></div>
+  <p style="font-size:1.75cqw">Toca cada efecto para descubrir en qué consiste.</p>
+  <div class="cls" id="inter" style="grid-template-columns:repeat(2,1fr);gap:1.1cqw;align-items:start"></div>
+  <div class="key" style="font-size:1.6cqw;margin-top:auto"><strong class="t" style="font-size:1.15cqw">No los confundas</strong><b>Sedación y analgesia:</b> mayores bajo el ánodo y con corriente descendente. <b>Tonificación:</b> mayor bajo el cátodo y con corriente ascendente (efecto débil).</div>
+</section>
+
+<!-- 14 Colocación -->
+<section class="slide" data-title="Colocación en corporal">
+  <div class="top"><div><div class="eyebrow">3.2 · Efectos interpolares</div><h2>Colocación en corporal: ¿relajar o tonificar?</h2></div><span class="ra">RA2 · c), d)</span></div>
+  <div class="row grow" style="gap:4cqw;flex-wrap:nowrap">
+    <svg class="body-svg" viewBox="0 0 200 360" aria-label="Pierna con dos bandas de electrodos">
+      <path d="M70 10 h60 q8 0 8 10 l-6 180 q-2 30 2 70 l4 60 q2 20 -18 20 h-40 q-18 0 -14 -20 l6 -60 q4 -40 2 -70 l-6 -180 q0 -10 8 -10z" fill="#f3d2bd" stroke="#e6b79b" stroke-width="3"/>
+      <rect id="b-top" x="60" y="60" width="80" height="30" rx="6" fill="#c8323c"/>
+      <text id="t-top" x="100" y="81" text-anchor="middle" fill="#fff" font-weight="700" font-size="18">+</text>
+      <rect id="b-bot" x="66" y="270" width="68" height="28" rx="6" fill="#2b3a67"/>
+      <text id="t-bot" x="100" y="290" text-anchor="middle" fill="#fff" font-weight="700" font-size="18">−</text>
+      <line x1="100" y1="110" x2="100" y2="248" stroke="#b8860b" stroke-width="4" stroke-dasharray="8 6"/>
+      <polygon id="arrow-head" points="90,240 110,240 100,258" fill="#b8860b"/>
+    </svg>
+    <div style="flex:1">
+      <div style="font-size:1.4cqw;color:var(--muted)">Sentido de la corriente</div>
+      <div class="bigtxt" id="pl-dir"></div>
+      <div style="font-size:1.4cqw;color:var(--muted);margin-top:1.2cqw">Efecto que predomina</div>
+      <div class="bigtxt" id="pl-eff"></div>
+      <p id="pl-txt" style="margin:1cqw 0 1.4cqw;font-size:1.75cqw"></p>
+      <button class="btn" id="pl-swap" style="font-size:1.5cqw">⇅ Intercambiar bandas</button>
+      <div class="key" style="margin-top:2cqw;font-size:1.55cqw"><strong class="t" style="font-size:1.15cqw">Truco para recordarlo</strong><b>A</b>nodo <b>a</b>rriba → rel<b>a</b>jante. El cátodo arriba «despierta» la zona: tonificante.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 Test -->
+<section class="slide" data-title="Autoevaluación">
+  <div class="top"><div><div class="eyebrow">Autoevaluación</div><h2>¿Lo has entendido?</h2></div><span class="ra">RA2 · a), c), g) · RA3 · g)</span></div>
+  <div class="qbar"><i id="q-bar"></i></div>
+  <div id="q-area" class="grow"></div>
+  <div class="row" style="justify-content:space-between">
+    <span id="q-count" style="color:var(--muted);font-size:1.4cqw"></span>
+    <button class="btn" id="q-next" style="display:none">Siguiente →</button>
+  </div>
+</section>
+
+<!-- 16 Cierre -->
+<section class="slide dark" data-title="Resumen final">
+  <div class="eyebrow">Para llevar</div>
+  <h2 style="font-size:3.4cqw">Ideas clave de los apartados 1-3</h2>
+  <div class="key grow" style="font-size:2.05cqw;display:flex;flex-direction:column;justify-content:center;padding:2cqw 3cqw">
+    <ul>
+      <li>La galvánica es una <b>corriente continua</b> de baja tensión y baja intensidad.</li>
+      <li><b>Ánodo (+) → reacción ácida.</b> <b>Cátodo (−) → reacción alcalina.</b></li>
+      <li><b>Efectos polares:</b> bajo cada electrodo. <b>Interpolares:</b> en los tejidos entre ellos.</li>
+      <li>A <b>electrodo más pequeño</b>, más densidad de corriente y más riesgo de quemadura.</li>
+      <li>El electrodo <b>pasivo</b>, siempre <b>más grande</b> que el activo.</li>
+      <li>El cosmético va bajo el electrodo de <b>su misma polaridad</b>.</li>
+      <li>Corporal: <b>ánodo arriba = relajante</b>; <b>cátodo arriba = tonificante</b>.</li>
+    </ul>
+  </div>
+</section>
+
+</div></div>
+
+<div class="nav">
+  <button class="navb" id="prev" aria-label="Diapositiva anterior">←</button>
+  <div class="dots" id="dots"></div>
+  <span id="counter"></span>
+  <button class="navb" id="next" aria-label="Diapositiva siguiente">→</button>
+  <button class="navb wide" id="fs" aria-label="Pantalla completa">⛶ Pantalla completa</button>
+</div>
+
+<div id="pop" role="tooltip"></div>
+
+<script>
+/* ---------- Navegación ---------- */
+const slides=[...document.querySelectorAll('.slide')];let cur=0;
+const dots=document.getElementById('dots');
+slides.forEach((s,i)=>{const d=document.createElement('button');d.className='dot';d.title=(i+1)+'. '+s.dataset.title;d.setAttribute('aria-label',d.title);d.onclick=()=>go(i);dots.appendChild(d)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle('active',k===cur));
+  [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===cur));
+  document.getElementById('counter').textContent=(cur+1)+' / '+slides.length;
+  document.getElementById('prev').disabled=cur===0;document.getElementById('next').disabled=cur===slides.length-1;
+  hidePop();
+  try{history.replaceState(null,'','#diapo-'+(cur+1))}catch(e){}
+}
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){go(cur+1);e.preventDefault()}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){go(cur-1);e.preventDefault()}
+  if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1);
+});
+document.getElementById('fs').onclick=()=>{try{if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen()}catch(e){}};
+
+/* ---------- Glosario ---------- */
+const GL={
+ ejemplo:["Palabra del glosario","Toca cualquier palabra subrayada para ver qué significa."],
+ continua:["Corriente continua","Corriente en la que los electrones circulan siempre en el mismo sentido, con intensidad y polaridad constantes."],
+ intensidad:["Intensidad","Cantidad de corriente que circula. En galvánica se mide en miliamperios (mA): 1 mA es la milésima parte de un amperio."],
+ electrolito:["Electrolito","Sustancia (ácido, base o sal) que, disuelta en agua, se separa en iones. Por eso el agua con sal conduce la corriente."],
+ ion:["Ion","Átomo o grupo de átomos con carga eléctrica."],
+ anodo:["Ánodo","Polo o electrodo positivo (+). Se conecta con el cable rojo."],
+ catodo:["Cátodo","Polo o electrodo negativo (−). Se conecta con el cable negro."],
+ cation:["Catión","Ion con carga positiva. Se dirige al cátodo (−)."],
+ anion:["Anión","Ion con carga negativa. Se dirige al ánodo (+)."],
+ polar:["Efecto polar / interpolar","El que ocurre bajo cada electrodo / entre los electrodos."],
+ hiper:["Hiperpolarización / despolarización","Cambios eléctricos que hacen al nervio menos excitable (bajo el ánodo) / más excitable (bajo el cátodo)."],
+ densidad:["Densidad de corriente","Intensidad por unidad de superficie del electrodo (mA/cm²)."],
+ iontoforesis:["Iontoforesis","Técnica para hacer penetrar principios activos a través de la piel por repulsión iónica. En estética se le llama «ionización»."]
+};
+const pop=document.getElementById('pop');let popFor=null;
+function hidePop(){pop.style.display='none';popFor=null}
+document.querySelectorAll('.term').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation();if(popFor===b){hidePop();return}
+  const d=GL[b.dataset.t];pop.innerHTML='<b>'+d[0]+'</b><br>'+d[1];pop.style.display='block';
+  const r=b.getBoundingClientRect(),w=Math.min(320,innerWidth-24);
+  let left=Math.min(Math.max(12,r.left),innerWidth-12-w);let top=r.bottom+8;
+  pop.style.left=left+'px';pop.style.top=top+'px';
+  const ph=pop.offsetHeight;if(top+ph>innerHeight-10)pop.style.top=(r.top-ph-8)+'px';popFor=b;
+}));
+document.addEventListener('click',hidePop);
+
+/* ---------- Onda (animada) ---------- */
+let isDC=false,waveT=0;
+const elG=document.getElementById('electrons'),EL=[];
+for(let k=0;k<12;k++){const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.innerHTML='<circle r="10" fill="#2b3a67"/><text text-anchor="middle" y="4" font-size="10" font-weight="700" fill="#fff">e⁻</text>';
+  elG.appendChild(g);EL.push(g)}
+function drawWave(){
+  document.getElementById('wave').setAttribute('stroke',isDC?'#c8323c':'#2b3a67');
+  document.getElementById('wave-title').textContent=isDC?'Corriente continua (galvánica)':'Corriente alterna (la de la red)';
+  document.getElementById('wave-txt').textContent=isDC?'Siempre en el mismo sentido, con intensidad y polaridad constantes.':'El sentido cambia sin parar: sube a + y baja a −.';
+  document.getElementById('wave-btn').textContent=isDC?'← Volver a la red':'Pasar por el transformador →';
+}
+function waveFrame(){
+  if(slides[cur].querySelector('#wave')){
+    waveT+=1/60;
+    const ph=waveT*2.2; let d='';
+    if(!isDC){for(let x=0;x<=560;x+=4){const y=90-60*Math.sin(x/560*Math.PI*6-ph);d+=(x?'L':'M')+(x+22)+' '+y.toFixed(1)}}
+    else d='M22 40 L582 40';
+    document.getElementById('wave').setAttribute('d',d);
+    const dot=document.getElementById('wave-dot');
+    const yNow=isDC?40:90-60*Math.sin(-ph);
+    dot.setAttribute('cx',22);dot.setAttribute('cy',yNow.toFixed(1));
+    const sp=570/12;
+    EL.forEach((g,k)=>{
+      let x;
+      if(isDC){x=20+((k*sp+waveT*70)%570)}
+      else{x=20+sp/2+k*sp+22*Math.sin(ph)}
+      g.setAttribute('transform',`translate(${x.toFixed(1)},232)`);
+      g.style.opacity=(x<32||x>578)?0:1;
+    });
+    document.getElementById('wire-arrow').textContent=isDC?'→ siempre en el mismo sentido →':(Math.cos(ph)>0?'→ ahora hacia un lado →':'← ahora hacia el otro ←');
+  }
+  requestAnimationFrame(waveFrame);
+}
+document.getElementById('wave-btn').onclick=()=>{isDC=!isDC;drawWave()};drawWave();requestAnimationFrame(waveFrame);
+
+/* ---------- Simulador de iones ---------- */
+const NS='http://www.w3.org/2000/svg';
+const pg=document.getElementById('particles'),bg=document.getElementById('bubbles');
+let parts=[],bubbles=[],on=false,leftPlus=true,arrived={L:0,R:0};
+function mk(tag,attrs){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e}
+function initSim(){
+  pg.innerHTML='';bg.innerHTML='';parts=[];bubbles=[];arrived={L:0,R:0};
+  for(let i=0;i<36;i++){const pos=i%2===0;const g=mk('g',{});
+    g.appendChild(mk('circle',{r:11,fill:pos?'#c8323c':'#1f8a70'}));
+    const t=mk('text',{'text-anchor':'middle',y:4,'font-size':11,fill:'#fff','font-weight':700});t.textContent=pos?'Na⁺':'Cl⁻';g.appendChild(t);
+    pg.appendChild(g);parts.push({g,pos,x:90+Math.random()*460,y:30+Math.random()*200,vx:0,vy:0,done:false})}
+  updPH();render();
+}
+function render(){parts.forEach(p=>p.g.setAttribute('transform',`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`))}
+function target(p){const plus=leftPlus?'L':'R',minus=leftPlus?'R':'L';return p.pos?minus:plus}
+function step(){
+  if(slides[cur].querySelector('#sim')){
+  parts.forEach(p=>{
+    p.vx+=(Math.random()-.5)*.6;p.vy+=(Math.random()-.5)*.6;
+    if(on){const tx=target(p)==='L'?66:574;p.vx+=(tx-p.x)*.0025}
+    p.vx*=.9;p.vy*=.9;p.x+=p.vx;p.y+=p.vy;
+    p.x=Math.max(64,Math.min(576,p.x));p.y=Math.max(26,Math.min(234,p.y));
+    if(on&&!p.done){const s=target(p);if((s==='L'&&p.x<80)||(s==='R'&&p.x>560)){p.done=true;arrived[s]++;addBubble(s,p.pos);updPH()}}
+  });
+  bubbles.forEach(b=>{b.y-=1.1;b.el.setAttribute('cy',b.y);b.el.setAttribute('opacity',Math.max(0,(b.y-16)/220))});
+  bubbles=bubbles.filter(b=>{if(b.y<16){b.el.remove();return false}return true});
+  render();}
+  requestAnimationFrame(step);
+}
+function addBubble(side,isNa){ // cátodo: 1 H2 por cada 2 Na; ánodo: 1 O2 por cada 4 Cl → más burbujas en el −
+  const n=isNa?1:(Math.random()<.5?1:0);
+  for(let i=0;i<n;i++){const x=side==='L'?58+Math.random()*16:566+Math.random()*16;
+    const el=mk('circle',{cx:x,cy:236,r:isNa?4:5,fill:'none',stroke:isNa?'#2b3a67':'#c8323c','stroke-width':1.5});bg.appendChild(el);bubbles.push({el,y:236})}
+}
+function updPH(){
+  const aS=leftPlus?'L':'R',cS=leftPlus?'R':'L';const a=Math.min(arrived[aS],18),c=Math.min(arrived[cS],18);
+  document.getElementById('ph-plus').style.left=(47-a*2.4)+'%';document.getElementById('ph-minus').style.left=(47+c*2.6)+'%';
+  document.getElementById('r-plus').classList.toggle('on',a>2);document.getElementById('r-minus').classList.toggle('on',c>2);
+  const msg=document.getElementById('sim-msg');
+  if(!on)msg.textContent='Pulsa «Conectar corriente» y observa.';
+  else if(a+c<10)msg.textContent='Los Na⁺ (cationes) viajan hacia el polo −; los Cl⁻ (aniones), hacia el polo +.';
+  else msg.textContent='Bajo el + se forma ácido y sale oxígeno; bajo el − se forma sosa (NaOH) y sale hidrógeno (fíjate: salen más burbujas en el −).';
+}
+function paintPoles(){
+  document.getElementById('elL').setAttribute('fill',leftPlus?'#c8323c':'#2b3a67');document.getElementById('elR').setAttribute('fill',leftPlus?'#2b3a67':'#c8323c');
+  document.getElementById('lblL').textContent=leftPlus?'+':'−';document.getElementById('lblR').textContent=leftPlus?'−':'+';
+}
+document.getElementById('sim-on').onclick=e=>{on=!on;e.currentTarget.textContent=on?'⏸ Desconectar':'⚡ Conectar corriente';if(!on)parts.forEach(p=>p.done=false);updPH()};
+document.getElementById('sim-inv').onclick=()=>{leftPlus=!leftPlus;paintPoles();parts.forEach(p=>p.done=false);arrived={L:0,R:0};updPH();
+  document.getElementById('sim-msg').textContent='Has invertido la polaridad: los iones cambian de dirección y lo que era ácido pasa a ser alcalino. En cabina, ¡mandos a cero antes de tocar el inversor!'};
+document.getElementById('sim-reset').onclick=()=>{on=false;leftPlus=true;paintPoles();document.getElementById('sim-on').textContent='⚡ Conectar corriente';initSim()};
+initSim();requestAnimationFrame(step);
+
+/* ---------- Reto ánodo/cátodo ---------- */
+const CL=[
+ ["Atrae a los aniones (iones −)","a","Los signos contrarios se atraen: el ánodo es +."],
+ ["Atrae a los cationes (iones +)","c","El cátodo es −, así que atrae a los iones +."],
+ ["Se forma ácido clorhídrico (HCl)","a","Reacción ácida bajo el ánodo."],
+ ["Se forma hidróxido sódico (NaOH)","c","Reacción alcalina bajo el cátodo."],
+ ["Se libera hidrógeno","c","2 Na + 2 H₂O → 2 NaOH + H₂"],
+ ["Se libera oxígeno","a","4 Cl + 2 H₂O → 4 HCl + O₂"],
+ ["Vasoconstricción: los vasos se estrechan","a","Menos actividad metabólica."],
+ ["Vasodilatación: los vasos se ensanchan","c","Más actividad metabólica."],
+ ["Efecto sedante sobre los nervios","a","Hiperpolarización: nervio menos excitable."],
+ ["Estimula o excita los nervios","c","Despolarización: nervio más excitable."],
+ ["Quemadura seca, dura y superficial","a","Quemadura ácida, por coagulación."],
+ ["Quemadura húmeda, blanda y profunda","c","Quemadura alcalina, por licuefacción."],
+ ["Se conecta con el cable rojo","a","Rojo = positivo = ánodo."],
+ ["Se conecta con el cable negro","c","Negro = negativo = cátodo."]
+];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function buildCls(){
+  const box=document.getElementById('cls');box.innerHTML='';let ok=0,tot=0;
+  const upd=()=>document.getElementById('cls-score').textContent='Aciertos: '+ok+' / '+tot+(tot===CL.length?(ok===tot?' · ¡Perfecto! 🎉':' · Repasa las rojas'):'');
+  shuffle(CL.slice()).forEach(([txt,ans,why])=>{
+    const d=document.createElement('div');d.className='cl';
+    d.innerHTML=`<p>${txt}</p><div class="row"><button class="a">Ánodo +</button><button class="c">Cátodo −</button></div>`;
+    d.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      if(d.dataset.done)return;d.dataset.done=1;tot++;const right=b.className===ans;if(right)ok++;
+      d.classList.add(right?'right':'wrong');
+      d.querySelector('.row').outerHTML=`<small>${right?'✔ ':'✘ Es el <b>'+(ans==='a'?'ánodo (+)':'cátodo (−)')+'</b>. '}${why}</small>`;upd();
+    });box.appendChild(d)});upd();
+}
+buildCls();document.getElementById('cls-reset').onclick=buildCls;
+
+/* ---------- Zonas y polar/interpolar ---------- */
+const ZI={
+ a:['<span class="pill p-plus">Efecto polar · ánodo (+)</span>','Bajo el electrodo positivo: atrae aniones, <b>reacción ácida</b>, vasoconstricción y <b>sedación</b>.'],
+ c:['<span class="pill p-minus">Efecto polar · cátodo (−)</span>','Bajo el electrodo negativo: atrae cationes, <b>reacción alcalina</b>, vasodilatación y <b>estimulación</b>.'],
+ i:['<span class="pill" style="background:#fff2cc;color:#7a5a10">Efectos interpolares</span>','En los tejidos que atraviesa la corriente: <b>hiperemia</b>, más permeabilidad, sedación o tonificación, más secreción de las glándulas y mejor conductividad de la piel.']
+};
+document.querySelectorAll('.zone').forEach(z=>{const f=()=>{document.querySelectorAll('.zone').forEach(x=>x.classList.toggle('sel',x===z));const d=ZI[z.dataset.z];document.getElementById('zone-info').innerHTML=d[0]+'<p style="margin-top:.6cqw">'+d[1]+'</p>'};
+  z.addEventListener('click',f);z.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})});
+const PI=[
+ ["Reacción ácida bajo el electrodo positivo","p","Ocurre en la zona de contacto del ánodo."],
+ ["Hiperemia que dura algunas horas","i","Se da en los tejidos entre los electrodos."],
+ ["Quemadura química bajo un electrodo pequeño","p","Es la densidad de corriente bajo ese electrodo."],
+ ["Más permeabilidad de las membranas","i","Afecta a los tejidos que atraviesa la corriente."],
+ ["El cosmético es rechazado hacia la piel","p","La repulsión se produce bajo el electrodo activo."],
+ ["Mejora la conductividad de la piel","i","Por eso sirve como técnica preparatoria."]
+];
+function buildPI(){const box=document.getElementById('pi');box.innerHTML='';let ok=0,tot=0;
+  const upd=()=>document.getElementById('pi-score').textContent=ok+' / '+tot;
+  shuffle(PI.slice()).forEach(([t,ans,why])=>{const d=document.createElement('div');d.className='pi';
+    d.innerHTML=`<span>${t}</span><button data-v="p">Polar</button><button data-v="i">Interpolar</button>`;
+    d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(d.dataset.done)return;d.dataset.done=1;tot++;const r=b.dataset.v===ans;if(r)ok++;
+      d.classList.add(r?'right':'wrong');d.querySelectorAll('button').forEach(x=>x.remove());
+      d.querySelector('span').innerHTML=`${t}<br><small>${r?'✔':'✘ Es <b>'+(ans==='p'?'polar':'interpolar')+'</b>.'} ${why}</small>`;upd()});
+    box.appendChild(d)});upd()}
+buildPI();
+document.getElementById('pi-reset').onclick=()=>{
+  document.querySelectorAll('.zone').forEach(x=>x.classList.remove('sel'));
+  document.getElementById('zone-info').innerHTML='<p style="color:var(--muted)">Elige una zona: bajo el ánodo, bajo el cátodo o entre los dos.</p>';
+  buildPI();
+};
+
+/* ---------- Tabla modo repaso ---------- */
+(function(){
+  const cells=[...document.querySelectorAll('#tb tr')].slice(1).flatMap(r=>[...r.querySelectorAll('td')].slice(1));
+  const mode=document.getElementById('tb-mode'),all=document.getElementById('tb-all'),cnt=document.getElementById('tb-count'),hint=document.getElementById('tb-hint');
+  let on=false;
+  const upd=()=>{const n=cells.filter(c=>!c.classList.contains('hid')).length;cnt.textContent=on?n+' / '+cells.length:''};
+  function set(v){on=v;cells.forEach(c=>{c.classList.toggle('hid',on);c.classList.remove('shown');c.tabIndex=on?0:-1});
+    mode.textContent=on?'↺ Salir del repaso':'🙈 Modo repaso';all.style.display=on?'inline-block':'none';hint.style.display=on?'block':'none';upd()}
+  cells.forEach(c=>{const f=e=>{if(!c.classList.contains('hid'))return;e.stopPropagation();c.classList.remove('hid');c.classList.add('shown');upd()};
+    c.addEventListener('click',f);c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f(e)}})});
+  mode.onclick=()=>set(!on);
+  all.onclick=()=>{cells.forEach(c=>{if(c.classList.contains('hid')){c.classList.remove('hid');c.classList.add('shown')}});upd()};
+})();
+
+/* ---------- Densidad ---------- */
+const sI=document.getElementById('s-i'),sA=document.getElementById('s-a'),sP=document.getElementById('s-p');
+const fmt=n=>n.toLocaleString('es-ES',{maximumFractionDigits:3});
+function dens(){
+  const I=+sI.value,A=+sA.value,P=+sP.value;
+  document.getElementById('v-i').textContent=fmt(I)+' mA';document.getElementById('v-a').textContent=A+' cm²';document.getElementById('v-p').textContent=P+' cm²';
+  const da=I/A,dp=I/P;
+  document.getElementById('d-ra').textContent=fmt(+da.toFixed(3))+' mA/cm²';document.getElementById('d-rp').textContent=fmt(+dp.toFixed(3))+' mA/cm²';
+  const px=a=>(Math.max(1.6,Math.sqrt(a)*0.95))+'cqw';
+  const ea=document.getElementById('d-act'),ep=document.getElementById('d-pas');
+  ea.style.width=ea.style.height=px(A);ep.style.width=ep.style.height=px(P);
+  const g=d=>Math.min(1,d/1.2);
+  ea.style.boxShadow=`0 0 ${8+g(da)*40}px ${g(da)*14}px rgba(255,170,0,${.25+g(da)*.7})`;
+  ep.style.boxShadow=`0 0 ${8+g(dp)*40}px ${g(dp)*14}px rgba(255,170,0,${.25+g(dp)*.7})`;
+  document.getElementById('d-warn').style.display=P<=A?'block':'none';
+  let t;
+  if(P>A)t=`Con la misma intensidad, bajo el activo la corriente está ${fmt(+(da/dp).toFixed(1))} veces más concentrada que bajo el pasivo: ahí el efecto polar es más intenso.`;
+  else if(P===A)t='Los dos electrodos son iguales: la corriente se concentra igual bajo los dos.';
+  else t=`Ahora es el pasivo el que concentra ${fmt(+(dp/da).toFixed(1))} veces más corriente: podría producir un efecto (¡o una quemadura!) donde no queremos.`;
+  document.getElementById('d-txt').textContent=t;
+}
+[sI,sA,sP].forEach(s=>s.addEventListener('input',dens));dens();
+
+/* ---------- Iontoforesis ---------- */
+let ionSign='-',elSign='+';
+function segInit(id,cb){const s=document.getElementById(id);s.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');cb(b.dataset.v);ioDraw(false)})}
+segInit('seg-ion',v=>ionSign=v);segInit('seg-el',v=>elSign=v);
+const ioG=document.getElementById('io-parts');let ioP=[],ioAnim=null;
+function ioDraw(run){
+  document.getElementById('io-el').setAttribute('fill',elSign==='+'?'#c8323c':'#2b3a67');
+  document.getElementById('io-ellbl').textContent=elSign==='+'?'Ánodo (+)':'Cátodo (−)';
+  ioG.innerHTML='';ioP=[];cancelAnimationFrame(ioAnim);document.getElementById('io-fb').style.display='none';
+  for(let i=0;i<14;i++){const g=mk('g',{});g.appendChild(mk('circle',{r:10,fill:ionSign==='+'?'#e0663c':'#1f8a70'}));
+    const t=mk('text',{'text-anchor':'middle',y:5,'font-size':15,fill:'#fff','font-weight':700});t.textContent=ionSign==='+'?'+':'−';g.appendChild(t);
+    ioG.appendChild(g);const p={g,x:188+(i%7)*44+(i>6?20:0),y:i>6?100:80};ioP.push(p);g.setAttribute('transform',`translate(${p.x},${p.y})`)}
+  if(!run)return;
+  const repel=ionSign===elSign;let f=0;
+  ioP.forEach(p=>{p.ty=repel?155+Math.random()*135:72;p.tx=p.x+(Math.random()-.5)*(repel?40:10)});
+  (function a(){f++;ioP.forEach(p=>{p.x+=(p.tx-p.x)*.04;p.y+=(p.ty-p.y)*.04;p.g.setAttribute('transform',`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`)});if(f<120)ioAnim=requestAnimationFrame(a);else ioFb(repel)})();
+}
+function ioFb(repel){
+  const fb=document.getElementById('io-fb');fb.style.display='block';fb.className='fb '+(repel?'good':'bad');
+  const n=elSign==='+'?'ánodo (+)':'cátodo (−)';
+  fb.innerHTML=repel?`✔ <b>¡Bien colocado!</b> El ${n} rechaza los iones de su mismo signo y estos penetran en la piel.`
+   :`✘ <b>No penetra.</b> El ${n} <u>atrae</u> los iones de signo contrario: se quedan pegados a él. Usa el de la <b>misma polaridad</b> que el activo.`;
+}
+document.getElementById('io-go').onclick=()=>ioDraw(true);ioDraw(false);
+
+/* ---------- Interpolares ---------- */
+const IN=[
+ ["Hiperemia","Más flujo de sangre por vasodilatación, durante algunas horas. Llega más oxígeno y nutrientes y mejora el trofismo (estado de nutrición) de los tejidos."],
+ ["Más permeabilidad de las membranas","Facilita el paso de sustancias a través de la piel y la reabsorción de líquidos retenidos (efecto de drenaje)."],
+ ["Sedación y analgesia","Alivio del dolor. Mayor bajo el electrodo positivo y con corriente descendente (ánodo arriba)."],
+ ["Tonificación","Mayor bajo el electrodo negativo y con corriente ascendente (cátodo arriba). Es un efecto débil."],
+ ["Más capacidad de contracción muscular","No contrae el músculo, pero si después se aplica gimnasia pasiva, responde mejor."],
+ ["Más secreción de las glándulas","Aumenta la actividad de las glándulas de la zona."],
+ ["Efecto térmico","Poco apreciable."],
+ ["Mejora la conductividad de la piel","Baja su resistencia: puede usarse como técnica preparatoria antes de otras corrientes."]
+];
+const inter=document.getElementById('inter');
+IN.forEach(([t,d])=>{const b=document.createElement('button');b.className='cl';b.setAttribute('aria-expanded','false');
+  b.innerHTML=`<p style="margin:0;font-weight:700;font-size:1.75cqw">${t} <span style="float:right;color:var(--accent)">＋</span></p><small style="display:none;margin-top:.5cqw;font-size:1.45cqw;line-height:1.4">${d}</small>`;
+  b.onclick=()=>{const s=b.querySelector('small'),o=s.style.display==='none';inter.querySelectorAll('.cl').forEach(x=>{if(x!==b){x.querySelector('small').style.display='none';x.querySelector('span').textContent='＋';x.setAttribute('aria-expanded','false')}});s.style.display=o?'block':'none';b.querySelector('span').textContent=o?'－':'＋';b.setAttribute('aria-expanded',o)};inter.appendChild(b)});
+
+let anodeTop=true;
+function placement(){
+  document.getElementById('b-top').setAttribute('fill',anodeTop?'#c8323c':'#2b3a67');document.getElementById('b-bot').setAttribute('fill',anodeTop?'#2b3a67':'#c8323c');
+  document.getElementById('t-top').textContent=anodeTop?'+':'−';document.getElementById('t-bot').textContent=anodeTop?'−':'+';
+  document.getElementById('arrow-head').setAttribute('points',anodeTop?'90,240 110,240 100,258':'90,118 110,118 100,100');
+  document.getElementById('pl-dir').textContent=anodeTop?'Descendente ↓':'Ascendente ↑';
+  const e=document.getElementById('pl-eff');e.textContent=anodeTop?'Relajante (sedante)':'Excitante (tonificante)';e.style.color=anodeTop?'var(--plus)':'var(--minus)';
+  document.getElementById('pl-txt').textContent=anodeTop?'Ánodo (+) arriba y cátodo (−) abajo: la sedación y la analgesia son mayores bajo el positivo y con corriente descendente.':'Cátodo (−) arriba y ánodo (+) abajo: la tonificación es mayor bajo el negativo y con corriente ascendente. Recuerda que es un efecto débil.';
+}
+document.getElementById('pl-swap').onclick=()=>{anodeTop=!anodeTop;placement()};placement();
+
+/* ---------- Test ---------- */
+const Q=[
+ ["La corriente galvánica es…",["Alterna, de alta tensión","Continua, de baja tensión y baja intensidad","Alterna, de baja intensidad","Continua, de alta intensidad"],1,"Es continua, de baja tensión (60-80 V) y baja intensidad (normalmente 1-10 mA)."],
+ ["¿Por qué los equipos de galvánica llevan un transformador?",["Para subir la tensión de la red","Para convertir la corriente alterna de la red en continua","Para producir calor","Para cambiar la polaridad automáticamente"],1,"La red nos llega en corriente alterna; el equipo la transforma en continua."],
+ ["Los iones Na⁺ (cationes) se dirigen hacia…",["El ánodo (+)","El cátodo (−)","Los dos polos por igual","No se mueven"],1,"Tienen carga positiva y van al polo de signo contrario: el cátodo (−)."],
+ ["Bajo el ánodo (+) se produce una reacción…",["Alcalina, con formación de NaOH","Ácida, con formación de HCl y liberación de oxígeno","Neutra","Alcalina, con liberación de hidrógeno"],1,"El Cl⁻ llega al ánodo y forma ácido clorhídrico (HCl), liberando oxígeno."],
+ ["Una quemadura húmeda, blanda y profunda es típica del…",["Ánodo","Cátodo","Electrodo pasivo grande","Efecto interpolar"],1,"Es la quemadura alcalina del cátodo. La del ánodo es seca, dura y más superficial."],
+ ["¿Qué efecto tiene el ánodo sobre los nervios?",["Los estimula (despolarización)","Los calma (hiperpolarización)","Ninguno","Los contrae"],1,"Bajo el ánodo el nervio se vuelve menos excitable (hiperpolarización): efecto sedante."],
+ ["Aplicas 6 mA con un electrodo de 3 cm². ¿Cuál es la densidad de corriente?",["18 mA/cm²","0,5 mA/cm²","2 mA/cm²","9 mA/cm²"],2,"Densidad = intensidad ÷ superficie = 6 ÷ 3 = 2 mA/cm²."],
+ ["Con la misma intensidad, ¿bajo qué electrodo hay más riesgo de quemadura química?",["Bajo el más grande","Bajo el más pequeño","Es igual en los dos","Depende del color del cable"],1,"Un electrodo pequeño concentra más la corriente (más densidad): el efecto es más intenso."],
+ ["En iontoforesis, un activo con iones negativos se coloca bajo…",["El cátodo (−)","El ánodo (+)","Cualquiera de los dos","El electrodo pasivo"],0,"Bajo el electrodo de su misma polaridad, que lo rechaza y lo empuja hacia la piel."],
+ ["En corporal, para un efecto relajante colocas…",["Cátodo arriba y ánodo abajo","Ánodo arriba y cátodo abajo","Los dos electrodos juntos arriba","Da igual la colocación"],1,"Ánodo (+) arriba y cátodo (−) abajo: corriente descendente, efecto sedante."]
+];
+let qi=0,qok=0,order=[];
+function qStart(){order=shuffle([...Q.keys()]);qi=0;qok=0;qShow()}
+function qShow(){
+  const area=document.getElementById('q-area'),nx=document.getElementById('q-next');
+  document.getElementById('q-bar').style.width=(qi/Q.length*100)+'%';
+  if(qi>=Q.length){
+    const msg=qok>=9?'¡Excelente! Dominas el fundamento.':qok>=7?'¡Muy bien! Repasa las que fallaste.':qok>=5?'Vas por buen camino. Vuelve a los simuladores de las preguntas falladas.':'Repasa las diapositivas 4 a 12 y vuelve a intentarlo.';
+    area.innerHTML=`<div style="text-align:center;padding-top:4cqw"><div class="num-big" style="font-size:5cqw">${qok} / ${Q.length}</div><p style="margin:1cqw 0 2cqw">${msg}</p><button class="btn" id="q-again">↺ Repetir</button></div>`;
+    document.getElementById('q-again').onclick=qStart;nx.style.display='none';document.getElementById('q-count').textContent='';return;
+  }
+  const [q,opts,ans,why]=Q[order[qi]];
+  area.innerHTML=`<h3 style="margin:1cqw 0 .6cqw;font-size:2.3cqw">${q}</h3>`+opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')+'<div class="fb" style="display:none;margin-top:.8cqw;font-size:1.6cqw"></div>';
+  document.getElementById('q-count').textContent=`Pregunta ${qi+1} de ${Q.length} · Aciertos: ${qok}`;nx.style.display='none';
+  area.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;area.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    area.querySelector(`.opt[data-i="${ans}"]`).classList.add('right');
+    const fb=area.querySelector('.fb');fb.style.display='block';
+    if(i===ans){qok++;fb.className='fb good';fb.innerHTML='✔ <b>Correcto.</b> '+why}else{b.classList.add('wrong');fb.className='fb bad';fb.innerHTML='✘ <b>No es correcto.</b> '+why}
+    document.getElementById('q-count').textContent=`Pregunta ${qi+1} de ${Q.length} · Aciertos: ${qok}`;
+    nx.style.display='inline-block';nx.textContent=qi===Q.length-1?'Ver resultado →':'Siguiente →';
+  });
+}
+document.getElementById('q-next').onclick=()=>{qi++;qShow()};qStart();
+
+/* ---------- Arranque ---------- */
+const m=location.hash.match(/^#diapo-(\d+)$/);go(m?(+m[1]-1):0);
+</script>
+</body>
+</html>
